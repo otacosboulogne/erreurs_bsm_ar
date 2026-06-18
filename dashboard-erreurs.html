@@ -390,7 +390,7 @@
 
 </div>
 
-<script>
+ <script>
   const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxG6PChMQpu9MDyI4x6fcgDEHURd-PMSWgcakuP_n3t52f_llVwMdhRWm7wH7IcIdgI/exec";
 
   let rawData = [];
@@ -411,7 +411,16 @@
       }
 
       rawData = json.erreurs || [];
-      allMonths = json.months || [];
+
+      rawData = rawData.map(e => ({
+        ...e,
+        month: normalizeMonth(e.month)
+      }));
+
+      allMonths = [...new Set(rawData.map(e => e.month))]
+        .filter(Boolean)
+        .sort()
+        .reverse();
 
       const select = qs("monthSelect");
 
@@ -436,17 +445,39 @@
     }
   }
 
-  function formatMonthLabel(month){
-    if(!month) return "—";
+  function normalizeMonth(value){
+    if(!value) return "";
 
-    const str = String(month);
+    const str = String(value).trim();
 
-    if(str.includes("-")){
-      const parts = str.split("-");
-      return `${parts[1]}/${parts[0]}`;
+    if(/^\d{4}-\d{2}$/.test(str)){
+      return str;
+    }
+
+    if(/^\d{4}-\d{2}-\d{2}/.test(str)){
+      return str.substring(0, 7);
+    }
+
+    const d = new Date(str);
+
+    if(!isNaN(d.getTime())){
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
     }
 
     return str;
+  }
+
+  function formatMonthLabel(month){
+    if(!month) return "—";
+
+    const cleanMonth = normalizeMonth(month);
+
+    if(/^\d{4}-\d{2}$/.test(cleanMonth)){
+      const parts = cleanMonth.split("-");
+      return `${parts[1]}/${parts[0]}`;
+    }
+
+    return cleanMonth;
   }
 
   function populateResponsableFilter(){
@@ -463,10 +494,11 @@
   }
 
   function updateDashboard(){
-    const month = qs("monthSelect").value;
+    const month = normalizeMonth(qs("monthSelect").value);
+
     qs("selectedMonthLabel").textContent = formatMonthLabel(month);
 
-    const data = rawData.filter(e => e.month === month);
+    const data = rawData.filter(e => normalizeMonth(e.month) === month);
 
     qs("totalErreurs").textContent = data.length;
 
@@ -489,16 +521,18 @@
     const stats = {};
 
     data.forEach(e => {
-      if(!stats[e.salarie]){
-        stats[e.salarie] = {
-          salarie:e.salarie,
+      const salarie = e.salarie || "Non précisé";
+
+      if(!stats[salarie]){
+        stats[salarie] = {
+          salarie:salarie,
           count:0,
           caPerdu:0
         };
       }
 
-      stats[e.salarie].count++;
-      stats[e.salarie].caPerdu += Number(e.caPerdu || 0);
+      stats[salarie].count++;
+      stats[salarie].caPerdu += Number(e.caPerdu || 0);
     });
 
     return Object.values(stats);
@@ -506,6 +540,7 @@
 
   function renderRankingErrors(data){
     const tbody = qs("rankingErrors");
+
     const stats = buildStats(data)
       .sort((a,b) => b.count - a.count)
       .slice(0,3);
@@ -526,6 +561,7 @@
 
   function renderRankingCa(data){
     const tbody = qs("rankingCa");
+
     const stats = buildStats(data)
       .sort((a,b) => b.caPerdu - a.caPerdu)
       .slice(0,3);
@@ -615,16 +651,16 @@
   }
 
   function renderLatest(){
-    const month = qs("monthSelect").value;
+    const month = normalizeMonth(qs("monthSelect").value);
     const staffFilter = qs("filterStaff").value.toLowerCase();
     const responsableFilter = qs("filterResponsable").value;
     const serviceFilter = qs("filterService").value;
     const modeFilter = qs("filterMode").value;
 
-    let data = rawData.filter(e => e.month === month);
+    let data = rawData.filter(e => normalizeMonth(e.month) === month);
 
     if(staffFilter){
-      data = data.filter(e => String(e.salarie).toLowerCase().includes(staffFilter));
+      data = data.filter(e => String(e.salarie || "").toLowerCase().includes(staffFilter));
     }
 
     if(responsableFilter){
@@ -684,7 +720,8 @@
     const counts = {};
 
     data.forEach(e => {
-      counts[e.typeErreur] = (counts[e.typeErreur] || 0) + 1;
+      const type = e.typeErreur || "Non précisé";
+      counts[type] = (counts[type] || 0) + 1;
     });
 
     return Object.entries(counts).sort((a,b) => b[1] - a[1])[0][0];
@@ -693,16 +730,16 @@
   function formatDate(dateStr){
     if(!dateStr) return "";
 
-    const str = String(dateStr);
+    const str = String(dateStr).trim();
 
-    if(str.includes("T")){
-      return formatDate(str.substring(0,10));
+    if(/^\d{4}-\d{2}-\d{2}/.test(str)){
+      return `${str.substring(8,10)}/${str.substring(5,7)}/${str.substring(0,4)}`;
     }
 
-    const parts = str.split("-");
+    const d = new Date(str);
 
-    if(parts.length === 3){
-      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    if(!isNaN(d.getTime())){
+      return `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
     }
 
     return str;
