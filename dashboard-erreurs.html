@@ -422,7 +422,7 @@
       }
 
       select.innerHTML = allMonths
-        .map(m => `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`)
+        .map(m => `<option value="${escapeHtml(m)}">${formatMonthLabel(m)}</option>`)
         .join("");
 
       select.value = allMonths[0];
@@ -431,8 +431,22 @@
       updateDashboard();
 
     } catch(e) {
-      showError("Erreur de chargement. Vérifie ton URL Apps Script.");
+      showError("Erreur de chargement : " + e.message);
+      console.error(e);
     }
+  }
+
+  function formatMonthLabel(month){
+    if(!month) return "—";
+
+    const str = String(month);
+
+    if(str.includes("-")){
+      const parts = str.split("-");
+      return `${parts[1]}/${parts[0]}`;
+    }
+
+    return str;
   }
 
   function populateResponsableFilter(){
@@ -450,7 +464,7 @@
 
   function updateDashboard(){
     const month = qs("monthSelect").value;
-    qs("selectedMonthLabel").textContent = month || "—";
+    qs("selectedMonthLabel").textContent = formatMonthLabel(month);
 
     const data = rawData.filter(e => e.month === month);
 
