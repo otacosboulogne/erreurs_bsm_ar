@@ -7,10 +7,15 @@
 
   <style>
     :root{
-      --bg:#fff8f1;--card:#ffffff;--text:#1f2430;--muted:#6c7480;
-      --orange:#f08a00;--orange-2:#ffb347;--line:#e9e0d3;
+      --card:#ffffff;
+      --text:#1f2430;
+      --muted:#6c7480;
+      --orange:#f08a00;
+      --orange-2:#ffb347;
+      --line:#e9e0d3;
       --shadow:0 16px 40px rgba(240,138,0,.12);
-      --danger:#b42318;--ok:#067647;--blue:#185fa5;
+      --danger:#b42318;
+      --ok:#067647;
     }
 
     *{box-sizing:border-box}
@@ -71,10 +76,7 @@
       margin-top:3px;
     }
 
-    .card{
-      padding:18px;
-      margin-bottom:14px;
-    }
+    .card{padding:18px;margin-bottom:14px}
 
     .grid-2{
       display:grid;
@@ -89,14 +91,9 @@
       margin-bottom:14px;
     }
 
-    label{
-      font-size:14px;
-      font-weight:800;
-    }
+    label{font-size:14px;font-weight:800}
 
-    input,select,textarea,button{
-      font:inherit;
-    }
+    input,select,textarea,button{font:inherit}
 
     input,select,textarea{
       width:100%;
@@ -108,9 +105,27 @@
       font-size:16px;
     }
 
-    textarea{
-      min-height:100px;
-      resize:vertical;
+    textarea{min-height:100px;resize:vertical}
+
+    .radio-box{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px;
+      background:#fffdf9;
+      margin-bottom:10px;
+    }
+
+    .radio-line{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-bottom:10px;
+      font-weight:700;
+    }
+
+    .radio-line input{
+      width:20px;
+      height:20px;
     }
 
     .btn{
@@ -219,10 +234,16 @@
 
       <div class="field">
         <label>Type d’erreur</label>
-        <select id="typeErreur">
+        <select id="typeErreur" onchange="toggleAutreErreur()">
           <option value="">Chargement...</option>
         </select>
       </div>
+    </div>
+
+    <div class="field" id="autreErreurBox" style="display:none">
+      <label>Préciser l’erreur</label>
+      <input type="text" id="autreErreur" placeholder="Ex : oubli supplément cheddar">
+      <div class="help">Cette erreur sera ajoutée automatiquement à la liste pour les prochaines fois.</div>
     </div>
 
     <div class="grid-2">
@@ -244,9 +265,26 @@
     </div>
 
     <div class="field">
-      <label>Coût de l’erreur en €</label>
-      <input type="number" id="coutErreur" step="0.01" placeholder="Ex : 4.50">
-      <div class="help">Le coût réel sera enregistré mais masqué dans le classement.</div>
+      <label>Calcul du CA perdu</label>
+
+      <div class="radio-box">
+        <label class="radio-line">
+          <input type="radio" name="typeMontant" value="prix_vente" checked>
+          Prix de vente du produit
+        </label>
+
+        <label class="radio-line">
+          <input type="radio" name="typeMontant" value="cout_fabrication">
+          Coût de fabrication du produit
+        </label>
+
+        <div class="help">
+          Prix de vente = CA perdu imputé directement.<br>
+          Coût fabrication = CA perdu calculé avec montant / 30%.
+        </div>
+      </div>
+
+      <input type="number" id="montantErreur" step="0.01" placeholder="Montant en € — Ex : 4.50">
     </div>
 
     <div class="field">
@@ -263,7 +301,7 @@
 </div>
 
 <script>
-  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzKa-g_2N7ix6rZoH_TFVx6n3VWTe-BbrDkyB0mInvokS1TRj5p45HBbykgkakREtoZ/exec";
+  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxG6PChMQpu9MDyI4x6fcgDEHURd-PMSWgcakuP_n3t52f_llVwMdhRWm7wH7IcIdgI/exec";
 
   function qs(id){
     return document.getElementById(id);
@@ -275,7 +313,8 @@
   }
 
   async function init(){
-    qs("dateErreur").value = today();
+    const currentDate = qs("dateErreur").value || today();
+    qs("dateErreur").value = currentDate;
 
     try {
       const res = await fetch(`${APPS_SCRIPT_URL}?mode=params`);
@@ -283,21 +322,32 @@
 
       qs("responsable").innerHTML = '<option value="">Choisir un responsable</option>';
       json.responsables.forEach(r => {
-        qs("responsable").innerHTML += `<option value="${r}">${r}</option>`;
+        qs("responsable").innerHTML += `<option value="${escapeHtml(r)}">${escapeHtml(r)}</option>`;
       });
 
       qs("salarie").innerHTML = '<option value="">Choisir un salarié</option>';
       json.salaries.forEach(s => {
-        qs("salarie").innerHTML += `<option value="${s}">${s}</option>`;
+        qs("salarie").innerHTML += `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`;
       });
 
       qs("typeErreur").innerHTML = '<option value="">Choisir une erreur</option>';
       json.typesErreur.forEach(t => {
-        qs("typeErreur").innerHTML += `<option value="${t}">${t}</option>`;
+        qs("typeErreur").innerHTML += `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`;
       });
 
     } catch(e) {
       showStatus("Erreur de chargement des paramètres.", "err");
+    }
+  }
+
+  function toggleAutreErreur(){
+    const value = qs("typeErreur").value;
+
+    if(value === "Autre"){
+      qs("autreErreurBox").style.display = "flex";
+    } else {
+      qs("autreErreurBox").style.display = "none";
+      qs("autreErreur").value = "";
     }
   }
 
@@ -307,9 +357,11 @@
       responsable: qs("responsable").value,
       salarie: qs("salarie").value,
       typeErreur: qs("typeErreur").value,
+      autreErreur: qs("autreErreur").value,
       modeCommande: qs("modeCommande").value,
       service: qs("service").value,
-      coutErreur: qs("coutErreur").value,
+      typeMontant: document.querySelector('input[name="typeMontant"]:checked').value,
+      montantErreur: qs("montantErreur").value,
       description: qs("description").value
     };
 
@@ -318,9 +370,10 @@
       !data.responsable ||
       !data.salarie ||
       !data.typeErreur ||
-      !data.coutErreur
+      !data.montantErreur ||
+      (data.typeErreur === "Autre" && !data.autreErreur)
     ){
-      showStatus("Merci de remplir la date, le responsable, le salarié, le type d’erreur et le coût.", "err");
+      showStatus("Merci de remplir tous les champs obligatoires.", "err");
       return;
     }
 
@@ -341,8 +394,13 @@
 
       qs("salarie").value = "";
       qs("typeErreur").value = "";
-      qs("coutErreur").value = "";
+      qs("autreErreur").value = "";
+      qs("autreErreurBox").style.display = "none";
+      qs("montantErreur").value = "";
       qs("description").value = "";
+      document.querySelector('input[name="typeMontant"][value="prix_vente"]').checked = true;
+
+      await init();
 
     } catch(e) {
       showStatus("Erreur serveur. Vérifie l’URL Apps Script.", "err");
@@ -353,6 +411,15 @@
     const el = qs("status");
     el.className = `status ${type}`;
     el.textContent = msg;
+  }
+
+  function escapeHtml(str){
+    return String(str || "")
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
   }
 
   init();
