@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Saisie erreurs salariés</title>
+
+  <style>
+    :root{
+      --bg:#fff8f1;--card:#ffffff;--text:#1f2430;--muted:#6c7480;
+      --orange:#f08a00;--orange-2:#ffb347;--line:#e9e0d3;
+      --shadow:0 16px 40px rgba(240,138,0,.12);
+      --danger:#b42318;--ok:#067647;--blue:#185fa5;
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Arial,sans-serif;
+      background:linear-gradient(180deg,#fff8f1 0%,#fffdf9 100%);
+      color:var(--text);
+      font-size:16px;
+    }
+
+    .wrap{max-width:900px;margin:0 auto;padding:16px}
+
+    .hero,.card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:20px;
+      box-shadow:var(--shadow);
+    }
+
+    .hero{
+      padding:18px;
+      margin-bottom:14px;
+      background:radial-gradient(circle at top right,rgba(240,138,0,.15),transparent 30%),
+      linear-gradient(135deg,rgba(255,179,71,.16),rgba(255,255,255,.9));
+    }
+
+    .top{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .logo-title{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+
+    .logo-title img{
+      width:48px;
+      height:48px;
+      object-fit:contain;
+      border-radius:12px;
+      background:#fff;
+      border:1px solid var(--line);
+      padding:4px;
+    }
+
+    h1{margin:0;font-size:22px}
+
+    .sub{
+      color:var(--muted);
+      font-size:14px;
+      margin-top:3px;
+    }
+
+    .card{
+      padding:18px;
+      margin-bottom:14px;
+    }
+
+    .grid-2{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:12px;
+    }
+
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      margin-bottom:14px;
+    }
+
+    label{
+      font-size:14px;
+      font-weight:800;
+    }
+
+    input,select,textarea,button{
+      font:inherit;
+    }
+
+    input,select,textarea{
+      width:100%;
+      padding:14px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:#fff;
+      color:var(--text);
+      font-size:16px;
+    }
+
+    textarea{
+      min-height:100px;
+      resize:vertical;
+    }
+
+    .btn{
+      border:0;
+      border-radius:14px;
+      padding:14px 18px;
+      cursor:pointer;
+      font-weight:900;
+      min-height:48px;
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .btn-primary{
+      background:linear-gradient(135deg,var(--orange),var(--orange-2));
+      color:white;
+      width:100%;
+    }
+
+    .btn-nav{
+      background:#fff;
+      color:var(--orange);
+      border:2px solid var(--orange);
+      border-radius:12px;
+      padding:10px 16px;
+      text-decoration:none;
+      font-weight:900;
+    }
+
+    .status{
+      padding:12px 14px;
+      border-radius:14px;
+      margin-top:12px;
+      font-weight:800;
+      display:none;
+    }
+
+    .status.ok{
+      display:block;
+      background:#ecfdf3;
+      color:var(--ok);
+      border:1px solid #abefc6;
+    }
+
+    .status.err{
+      display:block;
+      background:#fef3f2;
+      color:var(--danger);
+      border:1px solid #fecdca;
+    }
+
+    .help{
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    @media(max-width:650px){
+      .grid-2{grid-template-columns:1fr}
+      h1{font-size:18px}
+    }
+  </style>
+</head>
+
+<body>
+<div class="wrap">
+
+  <section class="hero">
+    <div class="top">
+      <div class="logo-title">
+        <img src="./otacos-logo.png" alt="Logo O'TACOS">
+        <div>
+          <h1>Saisie erreurs salariés</h1>
+          <div class="sub">O'TACOS — Suivi des erreurs</div>
+        </div>
+      </div>
+
+      <a class="btn-nav" href="dashboard-erreurs.html">📊 Dashboard erreurs</a>
+    </div>
+  </section>
+
+  <section class="card">
+
+    <div class="grid-2">
+      <div class="field">
+        <label>Date</label>
+        <input type="date" id="dateErreur">
+      </div>
+
+      <div class="field">
+        <label>Responsable de service</label>
+        <select id="responsable">
+          <option value="">Chargement...</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="field">
+        <label>Salarié concerné</label>
+        <select id="salarie">
+          <option value="">Chargement...</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Type d’erreur</label>
+        <select id="typeErreur">
+          <option value="">Chargement...</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="field">
+        <label>Mode commande</label>
+        <select id="modeCommande">
+          <option value="Sur place">Sur place</option>
+          <option value="À emporter">À emporter</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Service concerné</label>
+        <select id="service">
+          <option value="Caisse">Caisse</option>
+          <option value="Cuisine">Cuisine</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Coût de l’erreur en €</label>
+      <input type="number" id="coutErreur" step="0.01" placeholder="Ex : 4.50">
+      <div class="help">Le coût réel sera enregistré mais masqué dans le classement.</div>
+    </div>
+
+    <div class="field">
+      <label>Description</label>
+      <textarea id="description" placeholder="Décrire l’erreur constatée..."></textarea>
+    </div>
+
+    <button class="btn btn-primary" onclick="saveErreur()">💾 Enregistrer l’erreur</button>
+
+    <div id="status" class="status"></div>
+
+  </section>
+
+</div>
+
+<script>
+  const APPS_SCRIPT_URL = "COLLE_ICI_TON_URL_APPS_SCRIPT";
+
+  function qs(id){
+    return document.getElementById(id);
+  }
+
+  function today(){
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+
+  async function init(){
+    qs("dateErreur").value = today();
+
+    try {
+      const res = await fetch(`${APPS_SCRIPT_URL}?mode=params`);
+      const json = await res.json();
+
+      qs("responsable").innerHTML = '<option value="">Choisir un responsable</option>';
+      json.responsables.forEach(r => {
+        qs("responsable").innerHTML += `<option value="${r}">${r}</option>`;
+      });
+
+      qs("salarie").innerHTML = '<option value="">Choisir un salarié</option>';
+      json.salaries.forEach(s => {
+        qs("salarie").innerHTML += `<option value="${s}">${s}</option>`;
+      });
+
+      qs("typeErreur").innerHTML = '<option value="">Choisir une erreur</option>';
+      json.typesErreur.forEach(t => {
+        qs("typeErreur").innerHTML += `<option value="${t}">${t}</option>`;
+      });
+
+    } catch(e) {
+      showStatus("Erreur de chargement des paramètres.", "err");
+    }
+  }
+
+  async function saveErreur(){
+    const data = {
+      date: qs("dateErreur").value,
+      responsable: qs("responsable").value,
+      salarie: qs("salarie").value,
+      typeErreur: qs("typeErreur").value,
+      modeCommande: qs("modeCommande").value,
+      service: qs("service").value,
+      coutErreur: qs("coutErreur").value,
+      description: qs("description").value
+    };
+
+    if(
+      !data.date ||
+      !data.responsable ||
+      !data.salarie ||
+      !data.typeErreur ||
+      !data.coutErreur
+    ){
+      showStatus("Merci de remplir la date, le responsable, le salarié, le type d’erreur et le coût.", "err");
+      return;
+    }
+
+    try {
+      const res = await fetch(APPS_SCRIPT_URL, {
+        method:"POST",
+        body:JSON.stringify(data)
+      });
+
+      const json = await res.json();
+
+      if(!json.ok){
+        showStatus(json.error || "Erreur lors de l’enregistrement.", "err");
+        return;
+      }
+
+      showStatus("✅ Erreur enregistrée avec succès.", "ok");
+
+      qs("salarie").value = "";
+      qs("typeErreur").value = "";
+      qs("coutErreur").value = "";
+      qs("description").value = "";
+
+    } catch(e) {
+      showStatus("Erreur serveur. Vérifie l’URL Apps Script.", "err");
+    }
+  }
+
+  function showStatus(msg, type){
+    const el = qs("status");
+    el.className = `status ${type}`;
+    el.textContent = msg;
+  }
+
+  init();
+</script>
+
+</body>
+</html>
