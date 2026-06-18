@@ -320,6 +320,11 @@
       const res = await fetch(`${APPS_SCRIPT_URL}?mode=params`);
       const json = await res.json();
 
+      if(!json.ok){
+        showStatus("Erreur de chargement des paramètres.", "err");
+        return;
+      }
+
       qs("responsable").innerHTML = '<option value="">Choisir un responsable</option>';
       json.responsables.forEach(r => {
         qs("responsable").innerHTML += `<option value="${escapeHtml(r)}">${escapeHtml(r)}</option>`;
@@ -336,7 +341,8 @@
       });
 
     } catch(e) {
-      showStatus("Erreur de chargement des paramètres.", "err");
+      showStatus("Erreur de chargement des paramètres : " + e.message, "err");
+      console.error(e);
     }
   }
 
@@ -403,7 +409,8 @@
       await init();
 
     } catch(e) {
-      showStatus("Erreur serveur. Vérifie l’URL Apps Script.", "err");
+      showStatus("Erreur serveur : " + e.message, "err");
+      console.error(e);
     }
   }
 
