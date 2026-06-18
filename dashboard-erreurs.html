@@ -7,10 +7,14 @@
 
   <style>
     :root{
-      --bg:#fff8f1;--card:#ffffff;--text:#1f2430;--muted:#6c7480;
-      --orange:#f08a00;--orange-2:#ffb347;--line:#ece2d6;
+      --card:#ffffff;
+      --text:#1f2430;
+      --muted:#6c7480;
+      --orange:#f08a00;
+      --orange-2:#ffb347;
+      --line:#ece2d6;
       --shadow:0 16px 40px rgba(240,138,0,.12);
-      --danger:#b42318;--blue:#185fa5;--green:#067647;
+      --danger:#b42318;
     }
 
     *{box-sizing:border-box}
@@ -387,7 +391,7 @@
 </div>
 
 <script>
-  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzKa-g_2N7ix6rZoH_TFVx6n3VWTe-BbrDkyB0mInvokS1TRj5p45HBbykgkakREtoZ/exec";
+  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxG6PChMQpu9MDyI4x6fcgDEHURd-PMSWgcakuP_n3t52f_llVwMdhRWm7wH7IcIdgI/exec";
 
   let rawData = [];
   let allMonths = [];
@@ -417,7 +421,10 @@
         return;
       }
 
-      select.innerHTML = allMonths.map(m => `<option value="${m}">${m}</option>`).join("");
+      select.innerHTML = allMonths
+        .map(m => `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`)
+        .join("");
+
       select.value = allMonths[0];
 
       populateResponsableFilter();
@@ -437,7 +444,7 @@
     select.innerHTML = `<option value="">Tous les responsables</option>`;
 
     responsables.forEach(r => {
-      select.innerHTML += `<option value="${r}">${r}</option>`;
+      select.innerHTML += `<option value="${escapeHtml(r)}">${escapeHtml(r)}</option>`;
     });
   }
 
@@ -651,7 +658,7 @@
         <div class="error-meta" style="margin-top:8px">
           CA perdu estimé : <b>${Number(e.caPerdu || 0).toFixed(2)} €</b>
           <br>
-          Coût réel masqué dans le classement.
+          Montant saisi masqué dans le classement.
         </div>
       </div>
     `).join("");
@@ -671,9 +678,20 @@
 
   function formatDate(dateStr){
     if(!dateStr) return "";
-    const d = new Date(dateStr);
-    if(isNaN(d)) return dateStr;
-    return d.toLocaleDateString("fr-FR");
+
+    const str = String(dateStr);
+
+    if(str.includes("T")){
+      return formatDate(str.substring(0,10));
+    }
+
+    const parts = str.split("-");
+
+    if(parts.length === 3){
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+
+    return str;
   }
 
   function escapeHtml(str){
